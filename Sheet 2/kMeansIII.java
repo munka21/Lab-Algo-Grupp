@@ -29,7 +29,7 @@ public class kMeansIIIV2 {
                 continue;//Die betrachtete Punkt überspringen wir
             }
             double test = Math.abs(points.get(indexFromCurrentPoint).distanceToZero - points.get(i).distanceToZero);
-            if (test <= r) {
+            if ((test <= r) && (points.get(i).inCenters == false)) {
                 double disPoint = distToPoint(points.get(indexFromCurrentPoint), points.get(i));
                 if (disPoint <= r) {//Vieleicht zu Int tauschen, wegen genauichkeit von double??
                     if (points.get(i).isCenter == true) {
@@ -43,11 +43,11 @@ public class kMeansIIIV2 {
                     }
                 }
             } else {
-                break;//Würden sortiert, falls if = false, weiter wird nicht true sein
+                continue;//Würden sortiert, falls if = false, weiter wird nicht true sein
             }
         }
         //Hier Kein Centers Gefunden unsere Punkt muss Centers sein, und alle Punkte in indexOfPoints zu eigene Center hinzufügen, besser neue Funktion dafür
-        if (points.get(indexFromCurrentPoint).inCenters == false) {
+        if ((points.get(indexFromCurrentPoint).inCenters == false) && (points.get(indexFromCurrentPoint).isCenter == false)) {
             makeCenters(points, indexFromCurrentPoint, indexOfPoints, nummberOfPoints);
         }
     }
@@ -79,7 +79,7 @@ public class kMeansIIIV2 {
             for (int j = 0; j < points.get(i).coordinates.length; j++) {
                 System.out.print(points.get(i).coordinates[j] + " ");
             }
-            System.out.print("   DisToZero " + points.get(i).distanceToZero + " " + points.get(i).isCenter + "\n");
+            System.out.print("   DisToZero " + points.get(i).distanceToZero + " isCenter " + points.get(i).isCenter + "\n");
         }
     }
 
@@ -127,8 +127,8 @@ public class kMeansIIIV2 {
         double r = scan.nextDouble();
         ArrayList<Point> points = new ArrayList<Point>();
         points = setPoints(scan, d, points);
-        printPoints(points);
         kMeans(points, r);
+        printPoints(points);
     }
 }
 
@@ -141,8 +141,10 @@ class Point {
 
     public static double computeDisToZero(double coordinates[]) {
         double disToZero = 0.0;
+        double temp = 0.0;
         for (int i = 0; i < coordinates.length; i++) {
-            disToZero += Math.pow(coordinates[i], 2);
+            temp = Math.pow(coordinates[i], 2);
+            disToZero += temp;
         }
         disToZero = Math.sqrt(disToZero);
         return disToZero;
