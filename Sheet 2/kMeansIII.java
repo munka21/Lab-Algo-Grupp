@@ -6,19 +6,19 @@ import java.util.Scanner;
 
 public class kMeansIIIV2 {
 
-    public static void kMeans(ArrayList<Point> points, double r) {
+    public static void kMeans(ArrayList<Point> points, double r, Center numberOfCenters) {
         int size = points.size() - 1;//Prüfe
         for (int i = 0; i < size; i++) {
             if ((points.get(i).isCenter == true) || (points.get(i).inCenters == true)) {
                 continue;
             } else {
                 //Finde Centers oder Macht Center
-                findCenter(points, r, i);
+                findCenter(points, r, i, numberOfCenters);
             }
         }
     }
 
-    public static void findCenter(ArrayList<Point> points, double r, int indexFromCurrentPoint) {
+    public static void findCenter(ArrayList<Point> points, double r, int indexFromCurrentPoint, Center numberOfCenters) {
         //Für dem Center finden oder als Center setzen
         int size = points.size() - 1;
         int[] indexOfPoints = new int[size];
@@ -42,20 +42,19 @@ public class kMeansIIIV2 {
                         //Hier müssen wir uns den punk erstmal merken, falls betrachtete Punk ein Centers wird
                     }
                 }
-            } else {
-                continue;//Würden sortiert, falls if = false, weiter wird nicht true sein
             }
         }
         //Hier Kein Centers Gefunden unsere Punkt muss Centers sein, und alle Punkte in indexOfPoints zu eigene Center hinzufügen, besser neue Funktion dafür
         if ((points.get(indexFromCurrentPoint).inCenters == false) && (points.get(indexFromCurrentPoint).isCenter == false)) {
-            makeCenters(points, indexFromCurrentPoint, indexOfPoints, nummberOfPoints);
+            makeCenters(points, indexFromCurrentPoint, indexOfPoints, nummberOfPoints, numberOfCenters);
         }
     }
 
-    public static void makeCenters(ArrayList<Point> points, int indexFromCurrentPoint, int indexOfPoints[], int nummberOfPoints) {
+    public static void makeCenters(ArrayList<Point> points, int indexFromCurrentPoint, int indexOfPoints[], int numberOfPoints, Center numberOfCenters) {
         points.get(indexFromCurrentPoint).isCenter = true;
         //Anzahl von Centers hier messen
-        for (int i = 0; i < nummberOfPoints; i++) {
+        numberOfCenters.Centers++;
+        for (int i = 0; i < numberOfPoints; i++) {
             points.get(indexOfPoints[i]).inCenters = true;
         }
     }
@@ -122,16 +121,22 @@ public class kMeansIIIV2 {
 
     public static void main(String[] args) throws IOException {
         Scanner scan;
-        scan = new Scanner(new File("D:\\test.txt"));
+        scan = new Scanner(new File("D:\\test2.txt"));
+        //scan = new Scanner(System.in);
         int d = scan.nextInt();
         double r = scan.nextDouble();
         ArrayList<Point> points = new ArrayList<Point>();
         points = setPoints(scan, d, points);
-        kMeans(points, r);
+        Center numberOfCenters = new Center();
+        kMeans(points, r, numberOfCenters);
         printPoints(points);
+        System.out.print(numberOfCenters.Centers);
     }
 }
 
+class Center {
+    int Centers = 0;
+}
 
 class Point {
     boolean inCenters = false;
@@ -139,7 +144,7 @@ class Point {
     double distanceToZero;
     double[] coordinates;
 
-    public static double computeDisToZero(double coordinates[]) {
+    public double computeDisToZero(double coordinates[]) {
         double disToZero = 0.0;
         double temp = 0.0;
         for (int i = 0; i < coordinates.length; i++) {
