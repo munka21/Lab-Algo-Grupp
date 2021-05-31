@@ -1,65 +1,40 @@
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Scanner;
+import java.io.*;
+import java.util.Arrays;
+import java.util.Comparator;
 
-public class kMeansIIIV2 {
+public class Test {
 
-    public static void kMeans(ArrayList<Point> points, double r, Center numberOfCenters) {
-        int size = points.size() - 1;//Prüfe
+    public static void kMeans(Point points[], int r, Center numberOfCenters) {
+        int size = points.length - 1;
         for (int i = 0; i < size; i++) {
-            if ((points.get(i).isCenter == true) || (points.get(i).inCenters == true)) {
+            if ((points[i].isCenter == true) || (points[i].inCenters == true)) {
                 continue;
             } else {
-                //Finde Centers oder Macht Center
                 findCenter(points, r, i, numberOfCenters);
             }
         }
     }
 
-    public static void findCenter(ArrayList<Point> points, double r, int indexFromCurrentPoint, Center numberOfCenters) {
-        //Für dem Center finden oder als Center setzen
-        int size = points.size() - 1;
-        int[] indexOfPoints = new int[size];
-        int index = 0;
-        int nummberOfPoints = 0;
+    public static void findCenter(Point points[], int r, int indexOfCurrentPoint, Center numberOfCenters) {
+        int size = numberOfCenters.Centers;
         for (int i = 0; i < size; i++) {
-            if (i == indexFromCurrentPoint) {
-                continue;//Die betrachtete Punkt überspringen wir
-            }
-            double test = Math.abs(points.get(indexFromCurrentPoint).distanceToZero - points.get(i).distanceToZero);
-            if ((test <= r) && (points.get(i).inCenters == false)) {
-                double disPoint = distToPoint(points.get(indexFromCurrentPoint), points.get(i));
-                if (disPoint <= r) {//Vieleicht zu Int tauschen, wegen genauichkeit von double??
-                    if (points.get(i).isCenter == true) {
-                        points.get(indexFromCurrentPoint).inCenters = true; //Hire wird er zu Center hinzugefügt
-                        break;//wurde zu Zentrum hinzugefügt, nächste punkt
-                    } else if (points.get(i).isCenter == false) {//Hier merken wir Punkte die max r weit sind und keine Center sind, falss der Punkt Center wird direkt übernehemen
-                        nummberOfPoints++;
-                        indexOfPoints[index] = i;
-                        index++;
-                        //Hier müssen wir uns den punk erstmal merken, falls betrachtete Punk ein Centers wird
-                    }
+            int disPoint = distToPoint(points[indexOfCurrentPoint], points[numberOfCenters.indexOfCenters[i]]);//Wir betrachten nur die Punkte, die schon als Centers makiert wurden.
+            if (disPoint <= r) {
+                if (points[numberOfCenters.indexOfCenters[i]].isCenter == true) {
+                    points[indexOfCurrentPoint].inCenters = true;
+                    break;
                 }
             }
         }
-        //Hier Kein Centers Gefunden unsere Punkt muss Centers sein, und alle Punkte in indexOfPoints zu eigene Center hinzufügen, besser neue Funktion dafür
-        if ((points.get(indexFromCurrentPoint).inCenters == false) && (points.get(indexFromCurrentPoint).isCenter == false)) {
-            makeCenters(points, indexFromCurrentPoint, indexOfPoints, nummberOfPoints, numberOfCenters);
+        if ((points[indexOfCurrentPoint].inCenters == false) && (points[indexOfCurrentPoint].isCenter == false)) {
+            points[indexOfCurrentPoint].isCenter = true;
+            //Merken welsche Punkten Centers sind
+            numberOfCenters.indexOfCenters[numberOfCenters.Centers] = indexOfCurrentPoint;
+            numberOfCenters.Centers++;
         }
     }
 
-    public static void makeCenters(ArrayList<Point> points, int indexFromCurrentPoint, int indexOfPoints[], int numberOfPoints, Center numberOfCenters) {
-        points.get(indexFromCurrentPoint).isCenter = true;
-        //Anzahl von Centers hier messen
-        numberOfCenters.Centers++;
-        for (int i = 0; i < numberOfPoints; i++) {
-            points.get(indexOfPoints[i]).inCenters = true;
-        }
-    }
-
-    public static double distToPoint(Point a, Point b) {
+    public static int distToPoint(Point a, Point b) {
         double dis = 0.0;
         double temp = 0.0;
         int dimension = a.coordinates.length;
@@ -68,90 +43,69 @@ public class kMeansIIIV2 {
             temp = Math.pow(temp, 2);
             dis += temp;
         }
-        dis = Math.sqrt(dis);
-        return dis;
+        //dis = Math.sqrt(dis);
+        return (int) dis;
     }
 
-    public static void printPoints(ArrayList<Point> points) {
-        int size = points.size() - 1;
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < points.get(i).coordinates.length; j++) {
-                System.out.print(points.get(i).coordinates[j] + " ");
-            }
-            System.out.print("   DisToZero " + points.get(i).distanceToZero + " isCenter " + points.get(i).isCenter + "\n");
-        }
-    }
-
-    public static ArrayList<Point> setPoints(Scanner scan, int d, ArrayList<Point> points) {
-        int dimension = 0;
-        int index = 0;
-        points.add(new Point());
-        while (scan.hasNextDouble()) {
-            if (points.get(index).coordinates == null) {
-                points.get(index).coordinates = new double[d];
-            }
-            double temp = scan.nextDouble();
-            points.get(index).coordinates[dimension] = temp;
-            dimension++;
-            if (dimension == d) {
-                points.get(index).distanceToZero = points.get(index).computeDisToZero(points.get(index).coordinates);
-                dimension = 0;
-                points.add(new Point());
-                index++;
-            }
-        }
-        //Letzte Points kann man löschen
-        points = sortPoints(points);
+    public static Point[] dymArray(Point points[]) {
+        Point[] pointsTemp = points;
+        points = new Point[pointsTemp.length + 1];
+        System.arraycopy(pointsTemp, 0, points, 0, pointsTemp.length);
         return points;
     }
 
-    public static ArrayList<Point> sortPoints(ArrayList<Point> points) {
-        int size = points.size() - 1;
-        for (int i = 0; i < size; i++) {
-            for (int j = i; j < size; j++) {
-                if ((points.get(i).distanceToZero > points.get(j).distanceToZero)) {
-                    Point tempPoint = points.get(j);
-                    points.remove(j);
-                    points.add(i, tempPoint);
-                }
-            }
-        }
+    public static Point[] dymArrayM(Point points[]) {
+        Point[] pointsTemp = points;
+        points = new Point[pointsTemp.length - 1];
+        System.arraycopy(pointsTemp, 0, points, 0, pointsTemp.length - 1);
         return points;
     }
 
     public static void main(String[] args) throws IOException {
-        Scanner scan;
-        scan = new Scanner(new File("D:\\test2.txt"));
-        //scan = new Scanner(System.in);
-        int d = scan.nextInt();
-        double r = scan.nextDouble();
-        ArrayList<Point> points = new ArrayList<Point>();
-        points = setPoints(scan, d, points);
+        //BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
+        BufferedReader bf = new BufferedReader(new FileReader("D:\\test.txt"));
+        String[] firstLine = bf.readLine().split(" ");
+        int d = Integer.parseInt(firstLine[0]);
+        double rD = Double.parseDouble(firstLine[1]);
+        rD *= 1000;
+        int r = (int) rD;
+        r *= r;
+        Point[] points = new Point[1];
+        int dimension = 0;
+        int index = 0;
+        points[0] = new Point();
+        while (bf.ready()) {
+            if (points[index].coordinates == null) {
+                points[index].coordinates = new int[d];
+            }
+            String[] line = bf.readLine().split(" ");
+            for (int i = 0; i < d; i++) {
+                double temp = Double.parseDouble(line[i]);
+                temp *= 1000;
+                points[index].coordinates[dimension] = (int) temp;
+                dimension++;
+                if (dimension == d) {
+                    dimension = 0;
+                    points = dymArray(points);
+                    index++;
+                    points[index] = new Point();
+                }
+            }
+        }
         Center numberOfCenters = new Center();
+        numberOfCenters.indexOfCenters = new int[points.length];
         kMeans(points, r, numberOfCenters);
-        printPoints(points);
         System.out.print(numberOfCenters.Centers);
     }
 }
 
 class Center {
     int Centers = 0;
+    int[] indexOfCenters;
 }
 
 class Point {
     boolean inCenters = false;
     boolean isCenter = false;
-    double distanceToZero;
-    double[] coordinates;
-
-    public double computeDisToZero(double coordinates[]) {
-        double disToZero = 0.0;
-        double temp = 0.0;
-        for (int i = 0; i < coordinates.length; i++) {
-            temp = Math.pow(coordinates[i], 2);
-            disToZero += temp;
-        }
-        disToZero = Math.sqrt(disToZero);
-        return disToZero;
-    }
+    int[] coordinates;
 }
