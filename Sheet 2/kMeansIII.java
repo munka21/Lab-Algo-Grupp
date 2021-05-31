@@ -1,8 +1,6 @@
 import java.io.*;
-import java.util.Arrays;
-import java.util.Comparator;
 
-public class Test {
+public class kMeansIII {
 
     public static void kMeans(Point points[], int r, Center numberOfCenters) {
         int size = points.length - 1;
@@ -18,6 +16,9 @@ public class Test {
     public static void findCenter(Point points[], int r, int indexOfCurrentPoint, Center numberOfCenters) {
         int size = numberOfCenters.Centers;
         for (int i = 0; i < size; i++) {
+            if (points[numberOfCenters.indexOfCenters[i]].inCenters == true){
+                continue;
+            }
             int disPoint = distToPoint(points[indexOfCurrentPoint], points[numberOfCenters.indexOfCenters[i]]);//Wir betrachten nur die Punkte, die schon als Centers makiert wurden.
             if (disPoint <= r) {
                 if (points[numberOfCenters.indexOfCenters[i]].isCenter == true) {
@@ -54,16 +55,9 @@ public class Test {
         return points;
     }
 
-    public static Point[] dymArrayM(Point points[]) {
-        Point[] pointsTemp = points;
-        points = new Point[pointsTemp.length - 1];
-        System.arraycopy(pointsTemp, 0, points, 0, pointsTemp.length - 1);
-        return points;
-    }
-
     public static void main(String[] args) throws IOException {
-        //BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
-        BufferedReader bf = new BufferedReader(new FileReader("D:\\test.txt"));
+        //BufferedReader bf = new BufferedReader(new FileReader("D:\\test.txt"));
+        BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
         String[] firstLine = bf.readLine().split(" ");
         int d = Integer.parseInt(firstLine[0]);
         double rD = Double.parseDouble(firstLine[1]);
