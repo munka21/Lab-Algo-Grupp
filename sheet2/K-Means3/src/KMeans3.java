@@ -14,9 +14,9 @@ public class KMeans3 {
 		BufferedReader bi = new BufferedReader(new InputStreamReader(System.in));
 		String[] firstLine= bi.readLine().split(" ");
 		int dimension=Integer.parseInt(firstLine[0]);
-		BigInteger r=BigInteger.valueOf(Integer.parseInt(firstLine[1].replace(".","")));
+		long r=Long.parseLong(firstLine[1].replace(".",""));
 		// to avoid taking squareroots: 
-		r= r.pow(2);
+		long r_squared= r*r;
 		String line;
 		
 		TreeSet<Point> centers=new TreeSet<Point>();
@@ -31,7 +31,7 @@ public class KMeans3 {
 			Point p=new Point(values, index);
 			index++;
 			
-			if(!p.findNearestPoint(centers,r)) {
+			if(!p.findNearestPoint(centers,r, r_squared)) {
 				centers.add( p);
 			}
 		}
@@ -45,7 +45,8 @@ class Point implements Comparable<Point>{
 
 	private ArrayList<Long> values;
 	private int index;
-	private BigInteger distToZero;
+	private long norm;
+	private double distanceToZero;
 	private int dimension;
 
 	
@@ -53,31 +54,30 @@ class Point implements Comparable<Point>{
 	public Point(ArrayList<Long> values, int index) {
 		this.values=values;
 		this.index=index;
-		this.distToZero=BigInteger.ZERO;
+		this.norm=0;
 		for(long v: values) {
 			
-			distToZero=distToZero.add(BigInteger.valueOf(v).pow(2));
+			norm+=v*v;
 		}
 		this.dimension=this.values.size();
+		this.distanceToZero=Math.sqrt(norm);
 	}
-	public boolean findNearestPoint(TreeSet<Point> centers, BigInteger r) {
+	public boolean findNearestPoint(TreeSet<Point> centers, long r, long r_squared) {
 		//check if p itself is already in the list of centers:
 		if(centers.size()==0) {
 			return false;
 		}
 		else {
-
-			BigInteger binomi_temp= r.multiply(this.distToZero).multiply(BigInteger.valueOf(2));//definetly greater than 2*distance*r
+			double minDistance=Math.floor((this.distanceToZero-r));
+			double maxdistance= Math.ceil(this.distanceToZero+r);
 			
-			BigInteger minDistance= this.distToZero.subtract(binomi_temp);
-			BigInteger maxDistance=this.distToZero.add(r).add(binomi_temp);
 			Point fromPoint=new Point(new ArrayList<Long>(), this.index);
 			Point toPoint=new Point(new ArrayList<Long>(), 0);
-			fromPoint.setDistToZero(minDistance);
-			toPoint.setDistToZero(maxDistance);
-			SortedSet<Point> toSearch=centers.subSet(fromPoint, toPoint);
+			fromPoint.setDistanceToZero(minDistance);
+			toPoint.setDistanceToZero(maxdistance);
+			SortedSet<Point> toSearch=centers.subSet(fromPoint, true, toPoint, true);
 			for(Point c: toSearch) {
-				if(this.calculateDistance(c, r).compareTo(r)<=0) {
+				if(this.calculateDistance(c, r_squared)<=r_squared) {
 					return true;
 				};
 			}
@@ -103,21 +103,29 @@ class Point implements Comparable<Point>{
 	public ArrayList<Long> getValues() {
 		return values;
 	}
-	public BigInteger getDistToZero() {
-		return distToZero;
+	public long getNorm() {
+		return norm;
 	}
-	public void setDistToZero(BigInteger distToZero) {
-		this.distToZero=distToZero;
+	public void setNorm(long norm) {
+		this.norm=norm;
 	}
 	
+	public double getDistanceToZero() {
+		return distanceToZero;
+	}
+	public void setDistanceToZero(double distanceToZero) {
+		this.distanceToZero=distanceToZero;
+	}
+	
+	
 	//maybe need to switch to BigInteger and maybe need to use R here to avoid calculation much more.
-	public BigInteger calculateDistance(Point p, BigInteger maxDistance) {
-		BigInteger distance=BigInteger.ZERO; //If we would not need to spare time here we need to check dimensions of both points first
+	public long calculateDistance(Point p, long maxDistance) {
+		long distance=0; //If we would not need to spare time here we need to check dimensions of both points first
 		for(int i=0; i<this.dimension; i++) {
-			BigInteger temp=BigInteger.valueOf(this.getValues().get(i)).subtract(BigInteger.valueOf(p.getValues().get(i)));
-			distance= distance.add(temp.pow(2));
-			if(distance.compareTo(maxDistance)==1) {
-				return maxDistance.add(BigInteger.ONE);
+			long temp=this.getValues().get(i)-p.getValues().get(i);
+			distance= distance+temp*temp;
+			if(distance >maxDistance) {
+				return distance;
 			}
 		}
 		return distance;
@@ -125,11 +133,11 @@ class Point implements Comparable<Point>{
 	}
 	@Override
 	public int compareTo(Point p) {
-		if(this.distToZero==p.getDistToZero()) {
+		if(this.distanceToZero==p.getDistanceToZero()) {
 			return p.index -this.index; //sorts index from big to small
 		}
 		
-		return this.distToZero.subtract(p.getDistToZero()).signum()  ;
+		return (int) Math.signum((this.distanceToZero-(p.getDistanceToZero())));
 	}
 	
 	
