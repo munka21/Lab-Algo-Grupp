@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -79,6 +80,44 @@ class OilTest {
     }
 
 	@Test
+    public void testCaseOnePositivParcel() throws NumberFormatException {
+        final String testString = "3\n"
+        		+ "-1 -4 -1 -2 -1 2 -2 -1 -3\n";
+        provideInput(testString);
+
+        Oil.main(new String[0]);
+        
+        
+        final String expectedOutput = "2\n";      		
+        assertEquals(expectedOutput, getOutput());
+    }
+	@Test
+    public void testCaseOneParcel() throws NumberFormatException {
+        final String testString = "1\n"
+        		+ "1\n";
+        provideInput(testString);
+
+        Oil.main(new String[0]);
+        
+        
+        final String expectedOutput = "1\n";      		
+        assertEquals(expectedOutput, getOutput());
+    }
+	
+	@Test
+    public void testCaseAllPositive() throws NumberFormatException {
+        final String testString = "3\n"
+        		+ "1 4 1 2 1 2 2 1 3\n";
+        provideInput(testString);
+
+        Oil.main(new String[0]);
+        
+        
+        final String expectedOutput = "17\n";      		
+        assertEquals(expectedOutput, getOutput());
+    }
+	
+	@Test
 	void testIndexTransformation() {
 		Oil oil=new Oil();
 		oil.n=10;
@@ -95,16 +134,19 @@ class OilTest {
 		Oil oil=new Oil();
 		oil.n=4;
 		oil.parcels=new ArrayList<Integer>();
+		oil.allRectanglesSeen=new HashSet<Oil.Rectangle>();
 		for(int i=0; i<16; i++) {
 			oil.parcels.add(1);
 		}
 		Oil.Rectangle rect=oil.new Rectangle(0,0,3,3,16,16);
 		ArrayList<Oil.Rectangle> retval= rect.cutOfSlices();
 		assertEquals(8, retval.size());
+
+		oil.allRectanglesSeen=new HashSet<Oil.Rectangle>();
 		
 		Oil.Rectangle rect2=oil.new Rectangle(0,0,0,1,2,2);
 		ArrayList<Oil.Rectangle> retval2= rect2.cutOfSlices();
-		assertEquals(4, retval2.size());
+		assertEquals(2, retval2.size());
 	}
 
 }
