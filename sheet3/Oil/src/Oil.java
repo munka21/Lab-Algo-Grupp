@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeSet;
 
@@ -9,7 +10,7 @@ import java.util.TreeSet;
 public class Oil {
 	public int n;
 	public ArrayList<Integer> parcels;
-	public HashSet<Rectangle> allRectanglesSeen;
+	public HashMap<Rectangle,Rectangle> allRectanglesSeen;
 	
 	public static void main(String[] args)  {
 		
@@ -30,7 +31,7 @@ public class Oil {
 		this.n=Integer.parseInt(bi.readLine());
 		if(n>0) {
 			String[] profit_entries= bi.readLine().split(" ");
-			allRectanglesSeen= new HashSet<Rectangle>();
+			allRectanglesSeen= new HashMap<Rectangle,Rectangle>();
 			this.parcels= new ArrayList<Integer>(n*n);
 			for(String s: profit_entries) {
 				parcels.add(Integer.parseInt(s));
@@ -187,34 +188,79 @@ public class Oil {
 			if(this.lowerRightJ-this.upperLeftJ>0) {
 				//cut of leftmost column
 				Rectangle tempRect= new Rectangle(this.upperLeftI, this.upperLeftJ, this.lowerRightI, this.upperLeftJ);
-				if(!allRectanglesSeen.contains(tempRect)) {// to avoid looking at the same Rectangle multiple times
-					profitTemp=calculateProfit(this.upperLeftI, this.upperLeftJ, this.lowerRightI, this.upperLeftJ);
-					potentialTemp=calculatePotential(this.upperLeftI, this.upperLeftJ, this.lowerRightI, this.upperLeftJ);
+				if(!allRectanglesSeen.containsKey(tempRect)) {// to avoid looking at the same Rectangle multiple times
+					//TODO idea to improve: check in allRectanglesSeen for the vector with one component more and substract that one parcel.
+					//check if one field longer Vector has already been looked at:
+					Rectangle leftColumnUp=new Rectangle(this.upperLeftI-1, this.upperLeftJ, this.lowerRightI, this.upperLeftJ);
+					Rectangle leftColumnDown=new Rectangle(this.upperLeftI, this.upperLeftJ, this.lowerRightI+1, this.upperLeftJ);
+					if(allRectanglesSeen.containsKey(leftColumnUp)) {
+						profitTemp= allRectanglesSeen.get(leftColumnUp).profit-parcels.get(transformIndex(this.upperLeftI-1, this.upperLeftJ));
+						if(parcels.get(transformIndex(this.upperLeftI-1, this.upperLeftJ))>0) {
+							potentialTemp= allRectanglesSeen.get(leftColumnUp).potential-parcels.get(transformIndex(this.upperLeftI-1, this.upperLeftJ));
+							
+						}else {
+							potentialTemp= allRectanglesSeen.get(leftColumnUp).potential;
+						}
+					}else if(allRectanglesSeen.containsKey(leftColumnDown)){
+						profitTemp= allRectanglesSeen.get(leftColumnDown).profit-parcels.get(transformIndex(this.lowerRightI+1, this.upperLeftJ));
+						if(parcels.get(transformIndex(this.lowerRightI+1, this.upperLeftJ))>0) {
+							potentialTemp= allRectanglesSeen.get(leftColumnDown).potential-parcels.get(transformIndex(this.lowerRightI+1, this.upperLeftJ));
+							
+						}else {
+							potentialTemp= allRectanglesSeen.get(leftColumnDown).potential;
+						}
+					}else {
+						profitTemp=calculateProfit(this.upperLeftI, this.upperLeftJ, this.lowerRightI, this.upperLeftJ);
+						potentialTemp=calculatePotential(this.upperLeftI, this.upperLeftJ, this.lowerRightI, this.upperLeftJ);
+						
+					}
 					tempRect.setProfit(profitTemp);
 					tempRect.setPotential(potentialTemp);
-					allRectanglesSeen.add(tempRect);
+					allRectanglesSeen.put(tempRect,tempRect);
 					if(profitTemp>0) {
 						retval.add(tempRect);
 					}
 					Rectangle tempRectInverse= new Rectangle(this.upperLeftI, this.upperLeftJ+1, this.lowerRightI, this.lowerRightJ, this.profit-profitTemp, this.potential-potentialTemp);
-					allRectanglesSeen.add(tempRectInverse);
+					allRectanglesSeen.put(tempRectInverse, tempRectInverse);
 					retval.add(tempRectInverse);
 					
 				}
 				
 				//cut off rightmost column
 				tempRect= new Rectangle (this.upperLeftI, this.lowerRightJ, this.lowerRightI, this.lowerRightJ);
-				if(!allRectanglesSeen.contains(tempRect)) {
-					profitTemp=calculateProfit(this.upperLeftI, this.lowerRightJ, this.lowerRightI, this.lowerRightJ);
-					potentialTemp=calculatePotential(this.upperLeftI, this.lowerRightJ, this.lowerRightI, this.lowerRightJ);
+				if(!allRectanglesSeen.containsKey(tempRect)) {
+					
+					Rectangle rightColumnUp=new Rectangle(this.upperLeftI-1, this.lowerRightJ, this.lowerRightI, this.lowerRightJ);
+					Rectangle rightColumnDown=new Rectangle(this.upperLeftI, this.lowerRightJ, this.lowerRightI+1, this.lowerRightJ);
+					if(allRectanglesSeen.containsKey(rightColumnUp)) {
+						profitTemp= allRectanglesSeen.get(rightColumnUp).profit-parcels.get(transformIndex(this.upperLeftI-1, this.lowerRightJ));
+						if(parcels.get(transformIndex(this.upperLeftI-1, this.lowerRightJ))>0) {
+							potentialTemp= allRectanglesSeen.get(rightColumnUp).potential-parcels.get(transformIndex(this.upperLeftI-1, this.lowerRightJ));
+							
+						}else {
+							potentialTemp= allRectanglesSeen.get(rightColumnUp).potential;
+						}
+					}else if(allRectanglesSeen.containsKey(rightColumnDown)){
+						profitTemp= allRectanglesSeen.get(rightColumnDown).profit-parcels.get(transformIndex(this.lowerRightI+1, this.lowerRightJ));
+						if(parcels.get(transformIndex(this.lowerRightI+1, this.lowerRightJ))>0) {
+							potentialTemp= allRectanglesSeen.get(rightColumnDown).potential-parcels.get(transformIndex(this.lowerRightI+1, this.lowerRightJ));
+							
+						}else {
+							potentialTemp= allRectanglesSeen.get(rightColumnDown).potential;
+						}
+					}else {
+						profitTemp=calculateProfit(this.upperLeftI, this.lowerRightJ, this.lowerRightI, this.lowerRightJ);
+						potentialTemp=calculatePotential(this.upperLeftI, this.lowerRightJ, this.lowerRightI, this.lowerRightJ);
+						
+					}
 					tempRect.setProfit(profitTemp);
 					tempRect.setPotential(potentialTemp);
-					allRectanglesSeen.add(tempRect);
+					allRectanglesSeen.put(tempRect, tempRect);
 					if(profitTemp>0) {
 						retval.add(tempRect);
 					}
 					Rectangle tempRectInverse= new Rectangle(this.upperLeftI, this.upperLeftJ, this.lowerRightI, this.lowerRightJ-1, this.profit-profitTemp, this.potential-potentialTemp);
-					allRectanglesSeen.add(tempRectInverse);
+					allRectanglesSeen.put(tempRectInverse, tempRectInverse);
 					retval.add(tempRectInverse);
 					
 				}
@@ -224,34 +270,83 @@ public class Oil {
 			if(this.lowerRightI-this.upperLeftI>0) {
 				//cut off upper row
 				Rectangle tempRect= new Rectangle(this.upperLeftI, this.upperLeftJ, this.upperLeftI, this.lowerRightJ);
-				if(!allRectanglesSeen.contains(tempRect)) {
-					profitTemp=calculateProfit(this.upperLeftI, this.upperLeftJ, this.upperLeftI, this.lowerRightJ);
-					potentialTemp=calculatePotential(this.upperLeftI, this.upperLeftJ, this.upperLeftI, this.lowerRightJ);
+				
+				if(!allRectanglesSeen.containsKey(tempRect)) {
+					Rectangle upperRowLeft=new Rectangle(this.upperLeftI, this.upperLeftJ-1, this.upperLeftI, this.lowerRightJ);
+					Rectangle upperRowRight=new Rectangle(this.upperLeftI, this.upperLeftJ, this.upperLeftI, this.lowerRightJ+1);
+					
+					if(allRectanglesSeen.containsKey(upperRowLeft)) {
+						profitTemp=allRectanglesSeen.get(upperRowLeft).profit-parcels.get(transformIndex(this.upperLeftI, this.upperLeftJ-1));
+						if(parcels.get(transformIndex(this.upperLeftI, this.upperLeftJ-1))>0){
+							potentialTemp=allRectanglesSeen.get(upperRowLeft).potential-parcels.get(transformIndex(this.upperLeftI, this.upperLeftJ-1));
+							
+						}else {
+							potentialTemp=allRectanglesSeen.get(upperRowLeft).potential;
+						}
+					} else if(allRectanglesSeen.containsKey(upperRowRight)) {
+						profitTemp=allRectanglesSeen.get(upperRowRight).profit-parcels.get(transformIndex(this.upperLeftI, this.lowerRightJ+1));
+						if(parcels.get(transformIndex(this.upperLeftI, this.lowerRightJ+1))>0){
+							potentialTemp=allRectanglesSeen.get(upperRowRight).potential-parcels.get(transformIndex(this.upperLeftI, this.lowerRightJ+1));
+							
+						}else {
+							potentialTemp=allRectanglesSeen.get(upperRowRight).potential;
+						}
+					} else {
+						profitTemp=calculateProfit(this.upperLeftI, this.upperLeftJ, this.upperLeftI, this.lowerRightJ);
+						potentialTemp=calculatePotential(this.upperLeftI, this.upperLeftJ, this.upperLeftI, this.lowerRightJ);
+					
+						
+					}
 					tempRect.setProfit(profitTemp);
 					tempRect.setPotential(potentialTemp);
-					allRectanglesSeen.add(tempRect);
+					allRectanglesSeen.put(tempRect, tempRect);
 					if(profitTemp>0) {
 						retval.add(tempRect);
 					}
 					Rectangle tempRectInverse= new Rectangle(this.upperLeftI+1, this.upperLeftJ, this.lowerRightI, this.lowerRightJ, this.profit-profitTemp, this.potential-potentialTemp);
-					allRectanglesSeen.add(tempRectInverse);
+					allRectanglesSeen.put(tempRectInverse, tempRectInverse);
 					retval.add(tempRectInverse);
 					
 				}
 				
 				//cut off lower row
 				tempRect=new Rectangle(this.lowerRightI, this.upperLeftJ, this.lowerRightI, this.lowerRightJ);
-				if(!allRectanglesSeen.contains(tempRect)) {
-					profitTemp=calculateProfit(this.lowerRightI, this.upperLeftJ, this.lowerRightI, this.lowerRightJ);
-					potentialTemp=calculatePotential(this.lowerRightI, this.upperLeftJ, this.lowerRightI, this.lowerRightJ);
+				
+				if(!allRectanglesSeen.containsKey(tempRect)) {
+					Rectangle lowerRowLeft=new Rectangle(this.lowerRightI, this.upperLeftJ-1, this.lowerRightI, this.lowerRightJ);
+					Rectangle lowerRowRight=new Rectangle(this.lowerRightI, this.upperLeftJ, this.lowerRightI, this.lowerRightJ+1);
+					
+					if(allRectanglesSeen.containsKey(lowerRowLeft)) {
+						profitTemp=allRectanglesSeen.get(lowerRowLeft).profit-parcels.get(transformIndex(this.lowerRightI, this.upperLeftJ-1));
+						if(parcels.get(transformIndex(this.lowerRightI, this.upperLeftJ-1))>0){
+							potentialTemp=allRectanglesSeen.get(lowerRowLeft).potential-parcels.get(transformIndex(this.lowerRightI, this.upperLeftJ-1));
+							
+						}else {
+							potentialTemp=allRectanglesSeen.get(lowerRowLeft).potential;
+						}
+					} else if(allRectanglesSeen.containsKey(lowerRowRight)) {
+						profitTemp=allRectanglesSeen.get(lowerRowRight).profit-parcels.get(transformIndex(this.lowerRightI, this.lowerRightJ+1));
+						if(parcels.get(transformIndex(this.lowerRightI, this.lowerRightJ+1))>0){
+							potentialTemp=allRectanglesSeen.get(lowerRowRight).potential-parcels.get(transformIndex(this.lowerRightI, this.lowerRightJ+1));
+							
+						}else {
+							potentialTemp=allRectanglesSeen.get(lowerRowRight).potential;
+						}
+					} else {
+						profitTemp=calculateProfit(this.upperLeftI, this.upperLeftJ, this.upperLeftI, this.lowerRightJ);
+						potentialTemp=calculatePotential(this.upperLeftI, this.upperLeftJ, this.upperLeftI, this.lowerRightJ);
+					
+						
+					}
+				
 					tempRect.setProfit(profitTemp);
 					tempRect.setPotential(potentialTemp);
-					allRectanglesSeen.add(tempRect);
+					allRectanglesSeen.put(tempRect, tempRect);
 					if(profitTemp>0) {
 						retval.add(tempRect);
 					}
 					Rectangle tempRectInverse=new Rectangle(this.upperLeftI, this.upperLeftJ, this.lowerRightI-1, this.lowerRightJ, this.profit-profitTemp, this.potential-potentialTemp);
-					allRectanglesSeen.add(tempRectInverse);
+					allRectanglesSeen.put(tempRectInverse, tempRectInverse);
 					retval.add(tempRectInverse);
 					
 				}
