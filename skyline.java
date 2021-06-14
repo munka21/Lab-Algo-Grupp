@@ -50,7 +50,7 @@ class skyline{
                            }
 
                         }
-                        if(next.getY()==b.getY()){
+                        if(next.getX()==b.getX()){
                             x = k;
                         }
                     }
