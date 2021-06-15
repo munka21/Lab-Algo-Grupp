@@ -1,3 +1,6 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Scanner;
@@ -6,13 +9,15 @@ public class Math2{
 
 
 
-    public static void main(String [] args) {
-        Scanner scanner = new Scanner(System.in);
-        int n = scanner.nextInt();
+    public static void main(String [] args) throws NumberFormatException, IOException {
+    	BufferedReader bi = new BufferedReader(new InputStreamReader(System.in));
+    	int n =Integer.parseInt(bi.readLine());
         for (int i = 0; i < n; i++) {
-            long u = scanner.nextLong();
-            long v = scanner.nextLong();
-            long w = scanner.nextLong();
+        	String[] line= bi.readLine().split(" ");
+
+            long u = Long.parseLong(line[0]);
+            long v = Long.parseLong(line[1]);
+            long w = Long.parseLong(line[2]);
             boolean done = false;
             
             ArrayList<Long> factors= allFactors(v, Math.min(v,w)); // guarantees that x*y*z=V
