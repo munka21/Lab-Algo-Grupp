@@ -26,11 +26,11 @@ public class math3{
 
             long max = Math.min(w , v);
             max = (long)Math.sqrt(max);
-            for(long x=-max; x<max; x++) {
+            for(long x=-max; x<Math.min(max, u/3); x++) {
 
                 while(x == 0||v%x != 0){x++;}
 
-                System.out.println(x);
+                //System.out.println(x);
                 long y = mitternachtsformel(u, x, -u + x, v / x);
 
                 if (y != 0 && y > x) {
@@ -70,6 +70,8 @@ public class math3{
     }
 
 }
+
+
 class myscanner{
     BufferedReader br;
     StringTokenizer st;
