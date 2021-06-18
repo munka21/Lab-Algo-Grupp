@@ -6,7 +6,7 @@ import java.util.StringTokenizer;
 
 public class math3{
 
-    public static void main(String [] args) throws NumberFormatException, IOException {
+    public static void main(String [] args){
 
         FileOutputStream fdout = new FileOutputStream(FileDescriptor.out);
         BufferedOutputStream outBuf = new BufferedOutputStream(fdout, 2048);
@@ -24,17 +24,18 @@ public class math3{
             long w = scanner.nextLong();
             boolean done = false;
 
-
-            for(long x=-(long)Math.floor(Math.sqrt(w)); x < Math.sqrt(w); x++) {
+            long max = Math.min(w , v);
+            max = (long)Math.sqrt(max);
+            for(long x=-max; x<max; x++) {
 
                 while(x == 0||v%x != 0){x++;}
 
-                //System.out.println(x);
+                System.out.println(x);
                 long y = mitternachtsformel(u, x, -u + x, v / x);
 
-                if (y != 0) {
+                if (y != 0 && y > x) {
                     long z = u - x - y;
-                    if (z * z + y * y + x * x == w && y > x) {
+                    if (z * z + y * y + x * x == w ) {
                         //log.write((x + " " + y + " " + z + "\n").getBytes());
                         System.out.println(x+" "+y+ " "+z);
                         done = true;
