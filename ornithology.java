@@ -11,24 +11,34 @@ class ornithology{
         int n = scanner.nextInt();
 
         ArrayList<point> [] paths = new ArrayList [s];
-        Arrays.fill(paths, new ArrayList<>());
 
+        int ind = 0;
+        int mink = Integer.MAX_VALUE;
         for (int i = 0; i < s; i++){
             int k = scanner.nextInt();
+            paths[i] = new ArrayList<>();
+            if(k < mink){
+                ind = i;
+                mink = k;
+            }
             for (int j = 0; j < k; j++){
 
                 int x = scanner.nextInt();
                 int y = scanner.nextInt();
                 int z = scanner.nextInt();
+
                 point p = new point(x, y, z);
                 paths[i].add(p);
             }
         }
+        //for(int i = 0; i < s; i++){
+         //   System.out.println(paths[i].toString());
+        //}
         int max = 0;
         int min = n;
-        int ind = 0;
+
         for (int i = 0; i < s; i++) {
-            if (i != ind){
+            if (!(i == ind)){
                 int dist = pathdist(paths[i], paths[ind]);
                 if(dist > max){
                     max = dist;
@@ -36,7 +46,6 @@ class ornithology{
             }
         }
         System.out.println(max);
-
 
     }
 
@@ -49,19 +58,21 @@ class ornithology{
         }
         for(int i = 0; i< a.size(); i++){
             for(int j = 0; j< b.size(); j++){
-
                 int d = a.get(i).dist(b.get(j));
-
-                if (i == 0 && j == 0)
-                    x[i][j] = d;
-                else if (i > 0 && j == 0)
+                if (i == 0){
+                    if(j == 0){
+                        x[i][j] = d;
+                    }
+                    else{
+                        x[i][j] = Math.max(x[0][j-1], d);
+                    }
+                }
+                else if(j==0){
                     x[i][j] = Math.max(x[i-1][0], d);
-                else if (i == 0 && j > 0)
-                    x[i][j] = Math.max(x[0][j-1], d);
-                else if (i > 0 && j > 0) {
+                }
+
+                else {
                     x[i][j] = Math.max(Math.min(Math.min(x[i - 1][ j], x[i - 1][ j - 1]), x[i][j - 1]), d);
-                } else {
-                    x[i][j] = Integer.MAX_VALUE;
                 }
             }
         }
@@ -80,8 +91,14 @@ class point{
         this.z = z;
     }
 
+
     public int dist(point p){
-        return ((x-p.getX()*(x-p.getX()))+(y-p.getY())*(y-p.getY())+(z-p.getZ())*(z-p.getZ()));
+        int xdist = x - p.getX();
+        int ydist = y - p.getY();
+        int zdist = z - p.getZ();
+
+        //System.out.println(toString()+" "+ p.toString()+" "+xdist);
+        return xdist*xdist + ydist*ydist + zdist*zdist;
     }
 
     public int getX() {
@@ -107,6 +124,13 @@ class point{
     public void setZ(int z) {
         this.z = z;
     }
+
+    @java.lang.Override
+    public java.lang.String toString() {
+        return  "x=" + x +
+                ", y=" + y +
+                ", z=" + z;
+    }
 }
 
 
@@ -128,6 +152,7 @@ class myscanner{
         }
         return st.nextToken();
     }
+
 
     int nextInt() {
         return Integer.parseInt(next());
