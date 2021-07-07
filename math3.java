@@ -22,37 +22,54 @@ public class math3{
             long u = scanner.nextLong();
             long v = scanner.nextLong();
             long w = scanner.nextLong();
-            boolean done = false;
 
-            long max = Math.min(w , v);
-            max = (long)Math.sqrt(max);
-            for(long x=-max; x<Math.min(max, u/3); x++) {
+            long high = (long) Math.sqrt(w);;
+            long low = - (long) Math.sqrt(w);
+            long x = (long)(low + ((high - low)/2));
+            while (high - low > 1){
 
-                while(x == 0||v%x != 0){x++;}
+                x = (long)(low + ((high - low)/2));
 
-                //System.out.println(x);
-                long y = mitternachtsformel(u, x, -u + x, v / x);
-
-                if (y != 0 && y > x) {
-                    long z = u - x - y;
-                    if (z * z + y * y + x * x == w ) {
-                        //log.write((x + " " + y + " " + z + "\n").getBytes());
-                        System.out.println(x+" "+y+ " "+z);
-                        done = true;
-                        break;
-                    }
+                if (function(x, u, v, w) > 0) {
+                    high = x;
+                }
+                else if (function(x, u, v, w) < 0) {
+                    low = x;
+                }
+                else {
+                    low = x;
+                    high = x;
                 }
             }
-            if (!done) {
+
+            if(low == 0){
                 System.out.println("empty set");
             }
-            System.out.flush();
+            else{
+                long erg [] = new long [3];
+                erg[0] = low;
+                erg[1] = mitternachtsformel(u, low, -u + x, v / low);
+                if(erg[1] == 0){
+                    System.out.println("empty set");
+                }
+                else{
+                    erg[2] = u-erg[0]-erg[1];
+
+                    Arrays.sort(erg);
+
+                    System.out.println(erg[0]+ " "+ erg[1]+ " "+ erg[2]);
+                }
+
+            }
         }
+        System.out.flush();
 
     }
 
+    public static long function(long x, long u, long v, long w){
+        return x*x*x-u*x*x+((u*u-w)/2)*x-v;
+    }
     public static long mitternachtsformel(long u,long x, long b , long c){
-
 
         double dis = Math.sqrt(b*b-4*c);
         long disk = (long)dis;
