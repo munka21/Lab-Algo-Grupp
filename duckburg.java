@@ -20,22 +20,18 @@ class duckburg {
         Arrays.sort(x);
 
         for (int i = 0; i < n; i++) {
-            D[i][0] = last(i, 0, x);
+            D[i][0] = last(i,0, x);
         }
 
-        for (int i = 1; i < n; i++) {
-            for (int m = 1; m < k; m++)//highest index in last cluster & largest index
-             {// lowest index in last cluster
+        for (int i = 1; i < n; i++) {//highest index in last cluster & largest index
+            for (int m = 1; m < k; m++){//number of clusters-1
                  int min = Integer.MAX_VALUE;
-                 for (int j = 1; j < i; j++){//number of clusters-1
-                    if (i == 0) { //only one number
-                        D[i][m] = 0;
-                    } else if (m < i) {
+                 for (int j = 1; j <= i; j++){// lowest index in last cluster
+                     if (m < i) {
+                         int dist = last(i, j, x);
 
-                        int dist = last(i, j, x);
-                        if(i == 10 && m == 1) {
-                            //System.out.println(j + " " + D[j-1][m-1] + " " + dist);
-                        }
+                         //System.out.println(j + " " + D[j-1][m-1] + " " + dist);
+
 
                         if (D[j - 1][m - 1] + dist < min) {
                             min = D[j - 1][m - 1] + dist;
@@ -47,10 +43,7 @@ class duckburg {
                     }
 
                 }
-
-
             }
-
         }
         for(int v = 0; v< n; v++){
             //System.out.println(Arrays.toString(D[v]));
@@ -62,19 +55,21 @@ class duckburg {
 
     public static int last(int i, int j, int[] x) {
         int dist = 0;
-        double mu = 0;
+        int mu = 0;
 
+        if(i == j){
+            return 0;
+        }
         for (int l = 0; l <= i - j; l++) {
             mu += x[j + l];
         }
-        mu = Math.round(mu / (i - j + 1));
+        mu = (int)Math.round((double)mu / (i - j + 1));
+        //System.out.println(mu);
 
         for (int l = 0; l < i - j + 1; l++) {
             dist += Math.abs(x[j + l] - mu);
         }
-
         return dist;
-
     }
 }
 
