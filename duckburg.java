@@ -5,7 +5,7 @@ import java.io.*;
 class duckburg {
     public static void main(String[] args) {
 
-        Scanner scanner = new Scanner(System.in);
+        myscanner scanner = new myscanner();
 
         int k = scanner.nextInt();
         int n = scanner.nextInt();
@@ -20,19 +20,15 @@ class duckburg {
         Arrays.sort(x);
 
         for (int i = 0; i < n; i++) {
-            D[i][0] = last(i,0, x);
+            D[i][0] = last(i, 0, x);
         }
 
         for (int i = 1; i < n; i++) {//highest index in last cluster & largest index
-            for (int m = 1; m < k; m++){//number of clusters-1
-                 int min = Integer.MAX_VALUE;
-                 for (int j = 1; j <= i; j++){// lowest index in last cluster
-                     if (m < i) {
-                         int dist = last(i, j, x);
-
-                         //System.out.println(j + " " + D[j-1][m-1] + " " + dist);
-
-
+            for (int m = 1; m < k; m++) {//number of clusters-1
+                int min = Integer.MAX_VALUE;
+                for (int j = 1; j <= i; j++) {// lowest index in last cluster
+                    if (m < i) {
+                        int dist = last(i, j, x);
                         if (D[j - 1][m - 1] + dist < min) {
                             min = D[j - 1][m - 1] + dist;
                         }
@@ -45,26 +41,15 @@ class duckburg {
                 }
             }
         }
-        for(int v = 0; v< n; v++){
-            //System.out.println(Arrays.toString(D[v]));
-        }
-        System.out.println(n*25-D[n-1][k-1]);
+        System.out.println(n * 25 - D[n - 1][k - 1]);
 
 
     }
 
     public static int last(int i, int j, int[] x) {
         int dist = 0;
-        int mu = 0;
-
-        if(i == j){
-            return 0;
-        }
-        for (int l = 0; l <= i - j; l++) {
-            mu += x[j + l];
-        }
-        mu = (int)Math.round((double)mu / (i - j + 1));
-        //System.out.println(mu);
+        //int mu = 0;
+        int mu = x[j + (i - j) / 2];
 
         for (int l = 0; l < i - j + 1; l++) {
             dist += Math.abs(x[j + l] - mu);
@@ -73,7 +58,7 @@ class duckburg {
     }
 }
 
-/*class myscanner{
+class myscanner{
     BufferedReader br;
     StringTokenizer st;
 
@@ -84,19 +69,21 @@ class duckburg {
     String next() {
         while (st == null || !st.hasMoreElements()) {
             try {
-                st = new StringTokenizer(br.read());
+                st = new StringTokenizer(br.readLine());
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
         return st.nextToken();
     }
-
     int nextInt() {
         return Integer.parseInt(next());
     }
-}*/
 
+    long nextLong() {
+        return Long.parseLong(next());
+    }
+}
 
 
 
