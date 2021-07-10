@@ -1,12 +1,9 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.PriorityQueue;
-import java.util.TreeSet;
 
 public class ExpressDelivery {
 
@@ -45,16 +42,12 @@ public class ExpressDelivery {
 			}
 		}
 		
-
+		droneNetwork.addOptimalEdges();
 		String output="";
 		for(int q=0; q<numberOfDeliveries; q++) {
 			String[] line= bi.readLine().split(" ");
 			droneNetwork.dikstra(Integer.parseInt(line[0])-1,Integer.parseInt(line[1])-1); //starting at 1 instead of 0
-			BigDecimal temp=droneNetwork.getNodes().get(Integer.parseInt(line[1])-1).dikstraDistance;
-			if(temp!=null) {
-				output+=df.format(temp)+" ";
-			}
-			
+			output+=df.format(droneNetwork.getNodes().get(Integer.parseInt(line[1])-1).dikstraDistance)+" ";
 		}
 		//remove empty space at the end:
 		output = output.substring(0, output.length() - 1);
@@ -76,7 +69,52 @@ public class ExpressDelivery {
 		
 
 
-
+		public void addOptimalEdges() {
+			ArrayList<Edge> additionalEdges = new ArrayList<Edge>();
+			boolean again=false;
+			for(Node u : this.nodes) {
+				for(Edge e: u.getOutgoingEdges()) {
+					if(e.getFlyFurther()) {
+						int distanceAvailable= u.maxDistance-e.distance;
+						Node v= e.endNode;
+						for(Edge e2: v.getOutgoingEdges()) {
+							if(e2.distance<=distanceAvailable && !(u.stationNumber==e2.endNode.stationNumber)) {
+								Node startNode=u;
+								Node endNode=e2.endNode;
+								int distance=e.distance+e2.distance;
+								double time= (double)distance/startNode.getKmh();
+								
+								if(!checkForBetterEdge(startNode, endNode, time)) {
+									Edge temp = new Edge(startNode, endNode, distance,time );
+									if(startNode.maxDistance>distance && endNode.getKmh()< startNode.getKmh()) {
+										temp.setFlyFurtherTrue();
+									}else if(startNode.maxDistance>distance && endNode.nonUsableEdge) {
+										temp.setFlyFurtherTrue();
+									}
+									additionalEdges.add(temp);
+								}
+								
+								
+							}
+							
+						}
+						e.setFlyFurtherFalse();
+					}
+				}
+			}
+			
+			for(Edge e: additionalEdges) {
+				e.startingNode.addEdge(e);
+				if(e.flyFurther) {
+					again=true;
+					
+				}
+			}
+			if(again) {
+				addOptimalEdges();
+			}
+			
+		}
 
 
 
@@ -88,20 +126,42 @@ public class ExpressDelivery {
 
 
 
+		private boolean checkForBetterEdge(Node startNode, Node endNode, double time) {
+			for(Edge e: startNode.outgoingEdges) {
+				if(e.endNode.stationNumber==endNode.stationNumber) {
+					if(e.timeNeeded< time) {
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+
+
+
+
+
 		public void addNode(int nodeNumber, int kmh, int maxDistance) {
 			nodes.add(new Node(nodeNumber, kmh, maxDistance, this.numberOfNodes));
 		}
 		public void addEdge(int startNode, int endNode, int distance) {
 			Node startNode2= this.getNodes().get(startNode);
-			if(startNode2.maxDistance>=distance) {
-				Node endNode2= this.getNodes().get(endNode);
-				BigDecimal time=  BigDecimal.valueOf(distance).divide(BigDecimal.valueOf(startNode2.getKmh()), 1000, RoundingMode.HALF_UP);
-						
-				Edge temp = new Edge(startNode2, endNode2, distance,time );
-				
-				startNode2.addEdge(temp);
-
+			
+			Node endNode2= this.getNodes().get(endNode);
+			double time= (double)distance/startNode2.getKmh();
+			Edge temp = new Edge(startNode2, endNode2, distance,time );
+			if(startNode2.maxDistance<distance) {
+				temp.setUsableFalse();
+				startNode2.setNonUsableEdgeTrue();
 			}
+			startNode2.addEdge(temp);
+				
+			if(startNode2.maxDistance>distance && endNode2.getKmh()< startNode2.getKmh()) {
+				temp.setFlyFurtherTrue();
+			} else if(startNode2.maxDistance>distance && endNode2.nonUsableEdge) {
+				temp.setFlyFurtherTrue();
+			}
+			
 			
 		}
 		
@@ -117,7 +177,7 @@ public class ExpressDelivery {
 					n.resetDikstraDistance();
 					queue.add(n);
 				}else {
-					n.setDikstraDistance(BigDecimal.ZERO);
+					n.setDikstraDistance(0);
 					queue.add(n);
 				}
 			}
@@ -126,19 +186,21 @@ public class ExpressDelivery {
 				//if needed I could add that all shortest paths are stored away here
 				if(u.getStationNumber()==endnumber) {
 					break;
-				}else if(u.getDikstraDistance()!=null){
+				}else {
 					for(Edge e: u.getOutgoingEdges()) {
-						Node v= e.getEndNode();
-						if(queue.contains(v)) {
-							//update distance if nessesary:
-							BigDecimal temp= u.getDikstraDistance().add(e.timeNeeded);
-							if(v.getDikstraDistance()==null ||temp.compareTo(v.getDikstraDistance())==-1) {
-								queue.remove(v);
-								v.setDikstraDistance(temp);
-								
-								queue.add(v); //sadly no resorting exists
+						if(e.usable) {
+							Node v= e.getEndNode();
+							if(queue.contains(v)) {
+								//update distance if nessesary:
+								if(u.getDikstraDistance()+e.timeNeeded<v.getDikstraDistance()) {
+									queue.remove(v);
+									v.setDikstraDistance(u.getDikstraDistance()+e.timeNeeded);
+									
+									queue.add(v); //sadly no resorting exists
+								}
 							}
 						}
+						
 					}
 					
 				}
@@ -156,7 +218,8 @@ public class ExpressDelivery {
 		private ArrayList<Edge> outgoingEdges;
 		private int kmh;
 		private int maxDistance;
-		private BigDecimal dikstraDistance;
+		private double dikstraDistance;
+		private boolean nonUsableEdge;
 		
 		
 		Node(int nodeNumber, int kmh, int maxDistance, int numberOfNodes){
@@ -164,13 +227,14 @@ public class ExpressDelivery {
 			this.outgoingEdges=new ArrayList<Edge>(numberOfNodes);
 			this.kmh=kmh;
 			this.maxDistance=maxDistance;
+			this.nonUsableEdge=false;
 		}
 
 		public ArrayList<Edge> getOutgoingEdges() {
 			return this.outgoingEdges;
 		}
 
-		public void setDikstraDistance(BigDecimal i) {
+		public void setDikstraDistance(double i) {
 			this.dikstraDistance=i;
 			
 		}
@@ -189,30 +253,19 @@ public class ExpressDelivery {
 		}
 		
 		public void resetDikstraDistance() {
-			this.dikstraDistance=null;
+			this.dikstraDistance=Integer.MAX_VALUE;
+		}
+		
+		public void setNonUsableEdgeTrue() {
+			this.nonUsableEdge=true;
 		}
 
 		@Override
 		public int compareTo(Node arg0) {
-			if(arg0.getDikstraDistance()==null) {
-				if(this.getDikstraDistance()==null) {
-					return 0;
-				}
-				else {
-					return -1;
-				}
-			}
-			else {
-				if( this.getDikstraDistance()==null){
-					return 1;
-				}
-				else {
-					return this.getDikstraDistance().subtract(arg0.getDikstraDistance()).signum();
-				}
-			}
+			return  (int) Math.signum(this.dikstraDistance-arg0.getDikstraDistance());
 		}
 
-		private BigDecimal getDikstraDistance() {
+		private double getDikstraDistance() {
 			return this.dikstraDistance;
 		}
 
@@ -231,17 +284,37 @@ public class ExpressDelivery {
 			private Node startingNode;
 			 private Node endNode;
 			 private int distance;
-			 private BigDecimal timeNeeded;
-		 public Edge(Node startNode, Node endNode, int distance, BigDecimal time) {
+			 private double timeNeeded;
+			 private boolean flyFurther;
+			 private boolean usable;
+			 
+		 public Edge(Node startNode, Node endNode, int distance, double time) {
 			this.startingNode=startNode;
 			this.endNode=endNode;
 			this.distance=distance;
 			this.timeNeeded=time;
+			this.flyFurther=false;
+			this.usable=true;
+		}
+		public void setFlyFurtherFalse() {
+			this.flyFurther=false;
+			
 		}
 		public Node getEndNode() {
 			return this.endNode;
 		}
 		
+		public boolean getFlyFurther() {
+			return this.flyFurther;
+		}
+		
+		public void setFlyFurtherTrue() {
+			this.flyFurther=true;
+		}
+		
+		public void setUsableFalse() {
+			this.usable=false;
+		}
 	 }
 
 }
