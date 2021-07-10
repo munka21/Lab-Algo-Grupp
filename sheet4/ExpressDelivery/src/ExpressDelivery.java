@@ -86,9 +86,7 @@ public class ExpressDelivery {
 								
 								if(!checkForBetterEdge(startNode, endNode, time)) {
 									Edge temp = new Edge(startNode, endNode, distance,time );
-									if(startNode.maxDistance>distance && endNode.getKmh()< startNode.getKmh()) {
-										temp.setFlyFurtherTrue();
-									}else if(startNode.maxDistance>distance && endNode.nonUsableEdge) {
+									if(startNode.maxDistance>distance ) {
 										temp.setFlyFurtherTrue();
 									}
 									additionalEdges.add(temp);
@@ -156,11 +154,9 @@ public class ExpressDelivery {
 			}
 			startNode2.addEdge(temp);
 				
-			if(startNode2.maxDistance>distance && endNode2.getKmh()< startNode2.getKmh()) {
+			if(startNode2.maxDistance>distance) {
 				temp.setFlyFurtherTrue();
-			} else if(startNode2.maxDistance>distance && endNode2.nonUsableEdge) {
-				temp.setFlyFurtherTrue();
-			}
+			} 
 			
 			
 		}
