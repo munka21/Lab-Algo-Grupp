@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
 
+import org.junit.Ignore;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,7 +50,26 @@ class SweetsTest {
         		+ "5 4 3 2 1\n";
         provideInput(testString);
 
-        Sweets.main(new String[0]);
+        SweetsV2.main(new String[0]);
+        
+        
+        final String expectedOutput = "2\n";      		
+        assertEquals(expectedOutput, getOutput());
+    }
+    
+    @Test
+    public void sampleCase2()   {
+        final String testString = "5\n"
+        		+ "5\n"
+        		+ "1 1 1 1 1\n"
+        		+ "1 2 3 4 5\n"
+        		+ "2 3 4 5 2\n"
+        		+ "1 1 1 1 1\n"
+        		+ "2 2 2 3 5\n"
+        		+ "5 4 3 2 1\n";
+        provideInput(testString);
+
+        SweetsV2.main(new String[0]);
         
         
         final String expectedOutput = "2\n";      		
@@ -67,7 +87,7 @@ class SweetsTest {
         		+ "2 2 2 2 3 3 1\n";
         provideInput(testString);
 
-        Sweets.main(new String[0]);
+        SweetsV2.main(new String[0]);
         
         
         final String expectedOutput = "2\n";      		
@@ -86,10 +106,82 @@ class SweetsTest {
         		+ "5 4 3 2\n";
         provideInput(testString);
 
-        Sweets.main(new String[0]);
+        SweetsV2.main(new String[0]);
         
         
-        final String expectedOutput = "0\n";      		
+        final String expectedOutput = "6\n";      		
+        assertEquals(expectedOutput, getOutput());
+    }
+    
+    @Test
+    public void sampleCaseOneSweetDisliked()   {
+        final String testString = "5\n"
+        		+ "5\n"
+        		+ "1 1 1 1 1\n"
+        		+ "5 2 3 4 5\n"
+        		+ "5 3 4 5 1\n"
+        		+ "5 1 1 1 1\n"
+        		+ "5 2 2 3 5\n"
+        		+ "5 4 3 2 1\n";
+        provideInput(testString);
+
+        SweetsV2.main(new String[0]);
+        
+        
+        final String expectedOutput = "5\n";      		
+        assertEquals(expectedOutput, getOutput());
+    }
+    
+    @Test
+    public void sampleCaseOneSweetDisliked2()   {
+        final String testString = "5\n"
+        		+ "5\n"
+        		+ "4 2 1 1 1\n"
+        		+ "5 2 3 4 5\n"
+        		+ "5 3 4 5 1\n"
+        		+ "5 1 1 1 1\n"
+        		+ "5 2 2 3 5\n"
+        		+ "5 4 3 2 1\n";
+        provideInput(testString);
+
+        SweetsV2.main(new String[0]);
+        
+        
+        final String expectedOutput = "2\n";      		
+        assertEquals(expectedOutput, getOutput());
+    }
+    
+    @Test
+    public void sampleCaseOneSweetForEach()   {
+        final String testString = "3\n"
+        		+ "3\n"
+        		+ "1 1 1\n"
+        		+ "3 1 2\n"
+        		+ "2 3 1\n"
+        		+ "1 2 3\n";
+        provideInput(testString);
+
+        SweetsV2.main(new String[0]);
+        
+        
+        final String expectedOutput = "1\n";      		
+        assertEquals(expectedOutput, getOutput());
+    }
+    
+    @Test
+    public void sampleCaseSameTaste()   {
+        final String testString = "3\n"
+        		+ "3\n"
+        		+ "2 3 2\n"
+        		+ "3 1 2\n"
+        		+ "3 1 2\n"
+        		+ "3 1 2\n";
+        provideInput(testString);
+
+        SweetsV2.main(new String[0]);
+        
+        
+        final String expectedOutput = "3\n";      		
         assertEquals(expectedOutput, getOutput());
     }
     
