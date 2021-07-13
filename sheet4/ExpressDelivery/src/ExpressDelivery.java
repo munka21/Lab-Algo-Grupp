@@ -49,9 +49,7 @@ public class ExpressDelivery {
 		for(int q=0; q<numberOfDeliveries; q++) {
 			String[] line= bi.readLine().split(" ");
 			output+=df.format(Math.round(minDist[Integer.parseInt(line[0])-1][Integer.parseInt(line[1])-1]*100d)/100d)+" ";
-			//droneNetwork.dikstra(Integer.parseInt(line[0])-1,Integer.parseInt(line[1])-1); //starting at 1 instead of 0
-			//output+=df.format(Math.round(droneNetwork.getNodes().get(Integer.parseInt(line[1])-1).getDikstraDistance(Integer.parseInt(line[0])-1)*100d)/100d)+" ";
-		}
+				}
 		//remove empty space at the end:
 		output = output.substring(0, output.length() - 1);
 		System.out.println(output);
@@ -76,11 +74,13 @@ public class ExpressDelivery {
 			ArrayList<Edge> additionalEdges = new ArrayList<Edge>();
 			boolean again=false;
 			for(Node u : this.nodes) {
-				for(Edge e: u.getOutgoingEdges()) {
+				for(int j: u.getOutgoingEdges().keySet()) {
+					Edge e=u.getOutgoingEdges().get(j);
 					if(e.getFlyFurther()) {
 						int distanceAvailable= u.maxDistance-e.distance;
 						Node v= e.endNode;
-						for(Edge e2: v.getOutgoingEdges()) {
+						for(int i: v.getOutgoingEdges().keySet()) {
+							Edge e2=v.getOutgoingEdges().get(i);
 							if(e2.distance<=distanceAvailable && !(u.stationNumber==e2.endNode.stationNumber)) {
 								Node startNode=u;
 								Node endNode=e2.endNode;
@@ -105,11 +105,15 @@ public class ExpressDelivery {
 			}
 			
 			for(Edge e: additionalEdges) {
-				e.startingNode.addEdge(e);
-				if(e.flyFurther) {
-					again=true;
-					
+				//need to check if we haven't already added a better edge in this loop.
+				if(!checkForBetterEdge(e.startingNode, e.endNode, e.timeNeeded)) {
+					e.startingNode.addEdge(e);
+					if(e.flyFurther) {
+						again=true;
+						
+					}
 				}
+				
 			}
 			if(again) {
 				addOptimalEdges();
@@ -128,13 +132,14 @@ public class ExpressDelivery {
 
 
 		private boolean checkForBetterEdge(Node startNode, Node endNode, double time) {
-			for(Edge e: startNode.outgoingEdges) {
-				if(e.endNode.stationNumber==endNode.stationNumber) {
-					if(e.timeNeeded<= time) {
-						return true;
-					} 
+			
+			if(startNode.outgoingEdges.containsKey(endNode.stationNumber)) {
+				Edge e=startNode.outgoingEdges.get(endNode.stationNumber);
+				if(e.usable && e.timeNeeded<= time) {
+					return true;
 				}
 			}
+			
 			
 			
 			return false;
@@ -155,7 +160,6 @@ public class ExpressDelivery {
 			Edge temp = new Edge(startNode2, endNode2, distance,time );
 			if(startNode2.maxDistance<distance) {
 				temp.setUsableFalse();
-				startNode2.setNonUsableEdgeTrue();
 			}
 			startNode2.addEdge(temp);
 				
@@ -182,7 +186,8 @@ public class ExpressDelivery {
 
 			for (Node n : this.nodes) {
 				minimalDistance[n.stationNumber][n.stationNumber] = 0;
-				for (Edge e : n.outgoingEdges) {
+				for (int i : n.outgoingEdges.keySet()) {
+					Edge e=n.outgoingEdges.get(i);
 					if (e.usable) {
 						if (minimalDistance[n.stationNumber][e.endNode.stationNumber] > e.timeNeeded) {
 
@@ -206,95 +211,38 @@ public class ExpressDelivery {
 			}
 			return minimalDistance;
 		}
-		public void dikstra(int startnumber, int endnumber) {
-			// initialize Queue
-
-			Node endNode = this.nodes.get(endnumber);
-			if (!endNode.dikstraDistance.containsKey(startnumber)) {
-
-				PriorityQueue<Node> queue = new PriorityQueue<Node>();
-				for (Node n : nodes) {
-					n.setStartNodeNumber(startnumber);
-					if (n.getStationNumber() != startnumber) {
-						n.resetDikstraDistance(startnumber);
-						queue.add(n);
-					} else {
-						n.setDikstraDistance(0);
-						queue.add(n);
-					}
-				}
-				while (!queue.isEmpty()) {
-					Node u = queue.poll();
-
-					for (Edge e : u.getOutgoingEdges()) {
-						if (e.usable) {
-							Node v = e.getEndNode();
-							if (queue.contains(v)) {
-								// update distance if nessesary:
-								if (u.getDikstraDistance() + e.timeNeeded < v.getDikstraDistance()) {
-									queue.remove(v);
-									v.setDikstraDistance(u.getDikstraDistance() + e.timeNeeded);
-
-									queue.add(v); // sadly no resorting exists
-								}
-							}
-						}
-
-					}
-
-				}
-
-			}
-		}
-
+		
 
 		
 		
 	}
 	
-	 public class Node implements Comparable<Node>{
+	 public class Node {
 		private int stationNumber;
-		private ArrayList<Edge> outgoingEdges;
+		private HashMap<Integer,Edge> outgoingEdges;
 		private int kmh;
 		private int maxDistance;
-		private int startNodeNumber;
 		
-		private HashMap<Integer, Double> dikstraDistance;
-		private boolean nonUsableEdge;
 		
 		
 		Node(int nodeNumber, int kmh, int maxDistance, int numberOfNodes){
 			this.stationNumber=nodeNumber;
-			this.outgoingEdges=new ArrayList<Edge>(numberOfNodes);
+			this.outgoingEdges=new HashMap<Integer,Edge>();
 			this.kmh=kmh;
 			this.maxDistance=maxDistance;
-			this.nonUsableEdge=false;
-			this.dikstraDistance=new HashMap<Integer, Double>();
 		}
 
-		public ArrayList<Edge> getOutgoingEdges() {
+		public HashMap<Integer,Edge> getOutgoingEdges() {
 			return this.outgoingEdges;
 		}
 
-		public void setStartNodeNumber(int startNodeNumber) {
-			this.startNodeNumber=startNodeNumber;
-		}
-		public void setDikstraDistance(int nodeNumber, double i) {
-			this.dikstraDistance.put(nodeNumber, i);
-			
-		}
-		
-		public void setDikstraDistance( double i) {
-			this.dikstraDistance.put(this.startNodeNumber, i);
-			
-		}
 
 		public int getStationNumber() {
 			return this.stationNumber;
 		}
 
 		public void addEdge(Edge temp) {
-			outgoingEdges.add(temp);
+			outgoingEdges.put(temp.endNode.stationNumber, temp);
 			
 		}
 
@@ -302,27 +250,10 @@ public class ExpressDelivery {
 			return kmh;
 		}
 		
-		public void resetDikstraDistance(int nodeNumber) {
-			if(!this.dikstraDistance.keySet().contains(nodeNumber)) {
-				this.dikstraDistance.put(nodeNumber,  (double)Integer.MAX_VALUE);
-			}
-		}
 		
-		public void setNonUsableEdgeTrue() {
-			this.nonUsableEdge=true;
-		}
+	
 
-		@Override
-		public int compareTo(Node arg0) {
-			return  (int) Math.signum(this.dikstraDistance.get(this.startNodeNumber)-arg0.getDikstraDistance(this.startNodeNumber));
-		}
-
-		private double getDikstraDistance(int startNode) {
-			return this.dikstraDistance.get(startNode);
-		}
-		private double getDikstraDistance() {
-			return this.dikstraDistance.get(this.startNodeNumber);
-		}
+		
 
 		@Override
 		public boolean equals(Object obj) {
